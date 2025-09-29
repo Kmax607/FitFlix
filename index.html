@@ -1,0 +1,140 @@
+<div>Teachable Machine Jumping Jack Counter</div>
+<button type="button" onclick="init()">Start</button>
+<button type="button" onclick="resetCounter()">Reset</button>
+
+<div id="webcam-container" style="position: relative; display: inline-block;"></div>
+<div id="label-container"></div>
+<h2>Jumping Jacks: <span id="counter">0</span></h2>
+
+<!-- Flash overlay for feedback -->
+<div id="feedback"
+     style="position:absolute; top:0; left:0; width:200px; height:200px;
+            display:none; align-items:center; justify-content:center;
+            font-size:2em; font-weight:bold; color:lime; background:rgba(0,0,0,0.3);">
+    REP!
+</div>
+
+<!-- Progress bar -->
+<div style="width: 200px; border: 1px solid #333; margin-top: 10px;">
+    <div id="progress-bar" style="height: 20px; width: 0%; background: lime;"></div>
+</div>
+<p id="goal-message" style="font-weight: bold; color: green; display: none;">
+    Goal reached! 10 Jumping Jacks!
+</p>
+
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+<script type="text/javascript">
+    const URL = "./my_model/"; // folder with model.json, metadata.json, weights.bin
+    const GOAL = 10; // number of reps for progress bar goal
+
+    let model, webcam, labelContainer, maxPredictions;
+    let counter = 0;
+    let lastPosition = ""; // tracks last detected pose
+
+    async function init() {
+        const modelURL = URL + "model.json";
+        const metadataURL = URL + "metadata.json";
+
+        model = await tmImage.load(modelURL, metadataURL);
+        maxPredictions = model.getTotalClasses();
+
+        const flip = true;
+        webcam = new tmImage.Webcam(200, 200, flip);
+        await webcam.setup();
+        await webcam.play();
+        window.requestAnimationFrame(loop);
+
+        // Add webcam canvas
+        document.getElementById("webcam-container").appendChild(webcam.canvas);
+
+        // Attach feedback overlay on top of canvas
+        const feedback = document.getElementById("feedback");
+        document.getElementById("webcam-container").appendChild(feedback);
+
+        // Prediction labels
+        labelContainer = document.getElementById("label-container");
+        labelContainer.innerHTML = "";
+        for (let i = 0; i < maxPredictions; i++) {
+            labelContainer.appendChild(document.createElement("div"));
+        }
+    }
+
+    async function loop() {
+        webcam.update();
+        await predict();
+        window.requestAnimationFrame(loop);
+    }
+
+    async function predict() {
+        const prediction = await model.predict(webcam.canvas);
+
+        // Display predictions
+        for (let i = 0; i < maxPredictions; i++) {
+            const classPrediction =
+                prediction[i].className + ": " + prediction[i].probability.toFixed(2);
+            labelContainer.childNodes[i].innerHTML = classPrediction;
+        }
+
+        // Get best match
+        let bestMatch = prediction.reduce((prev, current) =>
+            (prev.probability > current.probability) ? prev : current
+        );
+
+        // Detect transition JackOut -> JackUp
+        if (bestMatch.className === "JackUp" && bestMatch.probability > 0.8) {
+            if (lastPosition === "JackOut") {
+                counter++;
+                document.getElementById("counter").innerText = counter;
+                console.log("Jumping Jack Count: " + counter);
+
+                // Show REP! feedback
+                flashFeedback();
+
+                // Update progress bar
+                updateProgress();
+
+                // Check goal completion
+                if (counter === GOAL) {
+                    goalReached();
+                }
+            }
+            lastPosition = "JackUp";
+        } else if (bestMatch.className === "JackOut" && bestMatch.probability > 0.8) {
+            lastPosition = "JackOut";
+        }
+    }
+
+    function resetCounter() {
+        counter = 0;
+        document.getElementById("counter").innerText = counter;
+        lastPosition = "";
+        document.getElementById("progress-bar").style.width = "0%";
+        document.getElementById("goal-message").style.display = "none";
+        document.body.style.backgroundColor = ""; // reset flash
+    }
+
+    function flashFeedback() {
+        const feedback = document.getElementById("feedback");
+        feedback.style.display = "flex";
+        setTimeout(() => {
+            feedback.style.display = "none";
+        }, 400);
+    }
+
+    function updateProgress() {
+        let progress = Math.min((counter / GOAL) * 100, 100);
+        document.getElementById("progress-bar").style.width = progress + "%";
+    }
+
+    function goalReached() {
+        const msg = document.getElementById("goal-message");
+        msg.style.display = "block";
+
+        // Flash background for celebration
+        document.body.style.backgroundColor = "yellow";
+        setTimeout(() => {
+            document.body.style.backgroundColor = "";
+        }, 1000);
+    }
+</script>
