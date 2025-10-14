@@ -1,10 +1,18 @@
-<div>Teachable Machine Jumping Jack Counter</div>
+<div>Teachable Machine Multi-Exercise Counter</div>
+<select id="exercise-select" onchange="changeExercise()">
+    <option value="jumpingjacks">Jumping Jacks</option>
+    <option value="pushups">Pushups</option>
+    <option value="squats">Squats</option>
+</select>
+
 <button type="button" onclick="init()">Start</button>
 <button type="button" onclick="resetCounter()">Reset</button>
 
 <div id="webcam-container" style="position: relative; display: inline-block;"></div>
 <div id="label-container"></div>
-<h2>Jumping Jacks: <span id="counter">0</span></h2>
+
+<h2>Current Exercise: <span id="exercise-name">Jumping Jacks</span></h2>
+<h2>Reps: <span id="counter">0</span></h2>
 
 <!-- Flash overlay for feedback -->
 <div id="feedback"
@@ -19,18 +27,28 @@
     <div id="progress-bar" style="height: 20px; width: 0%; background: lime;"></div>
 </div>
 <p id="goal-message" style="font-weight: bold; color: green; display: none;">
-    Goal reached! 10 Jumping Jacks!
+    🎉 Goal reached! 10 Reps! 🎉
 </p>
 
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+
 <script type="text/javascript">
-    const URL = "./my_model/"; // folder with model.json, metadata.json, weights.bin
-    const GOAL = 10; // number of reps for progress bar goal
+    const URL = "./my_model/"; // Folder with model.json, metadata.json, and weights.bin
+    const GOAL = 10;
 
     let model, webcam, labelContainer, maxPredictions;
     let counter = 0;
-    let lastPosition = ""; // tracks last detected pose
+    let lastPosition = "";
+    let currentExercise = "jumpingjacks";
+    let exerciseStates = { jumpingjacks: 0, pushups: 0, squats: 0 };
+
+    // Define which poses belong to each exercise
+    const exerciseClasses = {
+        jumpingjacks: ["JackUp", "JackOut"],
+        pushups: ["PushUp", "PushDown"],
+        squats: ["SquatUp", "SquatDown"]
+    };
 
     async function init() {
         const modelURL = URL + "model.json";
@@ -45,14 +63,9 @@
         await webcam.play();
         window.requestAnimationFrame(loop);
 
-        // Add webcam canvas
         document.getElementById("webcam-container").appendChild(webcam.canvas);
+        document.getElementById("webcam-container").appendChild(document.getElementById("feedback"));
 
-        // Attach feedback overlay on top of canvas
-        const feedback = document.getElementById("feedback");
-        document.getElementById("webcam-container").appendChild(feedback);
-
-        // Prediction labels
         labelContainer = document.getElementById("label-container");
         labelContainer.innerHTML = "";
         for (let i = 0; i < maxPredictions; i++) {
@@ -76,50 +89,60 @@
             labelContainer.childNodes[i].innerHTML = classPrediction;
         }
 
-        // Get best match
-        let bestMatch = prediction.reduce((prev, current) =>
+        // Only consider predictions relevant to the current exercise
+        const relevant = prediction.filter(p =>
+            exerciseClasses[currentExercise].includes(p.className)
+        );
+
+        if (relevant.length === 0) return;
+
+        // Find highest probability relevant pose
+        let bestMatch = relevant.reduce((prev, current) =>
             (prev.probability > current.probability) ? prev : current
         );
 
-        // Detect transition JackOut -> JackUp
-        if (bestMatch.className === "JackUp" && bestMatch.probability > 0.8) {
-            if (lastPosition === "JackOut") {
+        // Logic for counting reps
+        const [pos1, pos2] = exerciseClasses[currentExercise];
+
+        if (bestMatch.className === pos1 && bestMatch.probability > 0.8) {
+            if (lastPosition === pos2) {
                 counter++;
+                exerciseStates[currentExercise] = counter;
                 document.getElementById("counter").innerText = counter;
-                console.log("Jumping Jack Count: " + counter);
-
-                // Show REP! feedback
                 flashFeedback();
-
-                // Update progress bar
                 updateProgress();
-
-                // Check goal completion
-                if (counter === GOAL) {
-                    goalReached();
-                }
+                if (counter === GOAL) goalReached();
             }
-            lastPosition = "JackUp";
-        } else if (bestMatch.className === "JackOut" && bestMatch.probability > 0.8) {
-            lastPosition = "JackOut";
+            lastPosition = pos1;
+        } else if (bestMatch.className === pos2 && bestMatch.probability > 0.8) {
+            lastPosition = pos2;
         }
     }
 
-    function resetCounter() {
-        counter = 0;
+    function changeExercise() {
+        currentExercise = document.getElementById("exercise-select").value;
+        document.getElementById("exercise-name").innerText = formatName(currentExercise);
+        counter = exerciseStates[currentExercise];
         document.getElementById("counter").innerText = counter;
+        updateProgress();
+        document.getElementById("goal-message").style.display = counter >= GOAL ? "block" : "none";
         lastPosition = "";
+    }
+
+    function resetCounter() {
+        exerciseStates[currentExercise] = 0;
+        counter = 0;
+        lastPosition = "";
+        document.getElementById("counter").innerText = counter;
         document.getElementById("progress-bar").style.width = "0%";
         document.getElementById("goal-message").style.display = "none";
-        document.body.style.backgroundColor = ""; // reset flash
+        document.body.style.backgroundColor = "";
     }
 
     function flashFeedback() {
         const feedback = document.getElementById("feedback");
         feedback.style.display = "flex";
-        setTimeout(() => {
-            feedback.style.display = "none";
-        }, 400);
+        setTimeout(() => feedback.style.display = "none", 400);
     }
 
     function updateProgress() {
@@ -130,11 +153,14 @@
     function goalReached() {
         const msg = document.getElementById("goal-message");
         msg.style.display = "block";
-
-        // Flash background for celebration
         document.body.style.backgroundColor = "yellow";
-        setTimeout(() => {
-            document.body.style.backgroundColor = "";
-        }, 1000);
+        setTimeout(() => document.body.style.backgroundColor = "", 1000);
+    }
+
+    function formatName(name) {
+        if (name === "jumpingjacks") return "Jumping Jacks";
+        if (name === "pushups") return "Pushups";
+        if (name === "squats") return "Squats";
+        return name;
     }
 </script>
