@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "AI Fitness Break",
+  "version": "1.0",
+  "description": "Interrupts browsing for a short exercise break tracked by an on-device Teachable Machine model.",
+  "permissions": ["storage", "scripting", "activeTab"],
+  "host_permissions": ["<all_urls>"],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["exercise.html", "my_model/*"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>AI Fitness Break</title>
+  <style>
+    body { font-family: Arial, sans-serif; width: 300px; padding: 12px; }
+    label, select, input { display:block; margin: 8px 0; }
+    button { margin-top: 8px; }
+  </style>
+</head>
+<body>
+<h3>AI Fitness Break</h3>
+
+<label>
+  Exercise:
+  <select id="exerciseSelect">
+    <option value="JumpingJack">Jumping Jacks</option>
+    <option value="Pushup">Pushups</option>
+    <option value="Squat">Squats</option>
+    <option value="KneeHug">Knee Hug</option>
+  </select>
+</label>
+
+<label>
+  Goal:
+  <input id="goalInput" type="number" min="1" value="10">
+  <span id="goalUnit">reps</span>
+</label>
+
+<label>
+  <input id="enforceCheckbox" type="checkbox"> Enable enforcement
+</label>
+
+<button id="saveBtn">Save & Apply</button>
+<p style="font-size:0.9em; color:#555;">When enabled, this extension will block the page and require completing the selected exercise before continuing.</p>
+
+<script src="popup.js"></script>
+</body>
+</html>

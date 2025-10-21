@@ -1,0 +1,287 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Exercise Break</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body { margin:0; font-family: Arial, sans-serif; background:#fff; display:flex; align-items:center; justify-content:center; height:100vh; }
+    #container { width: 360px; background:#fafafa; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,0.2); padding:12px; text-align:center; }
+    #webcam-container { position:relative; width: 320px; height:320px; margin: 0 auto; }
+    canvas { border-radius:8px; }
+    #feedback { position:absolute; top:8px; left:8px; padding:6px 10px; background:rgba(0,0,0,0.6); color:white; border-radius:6px; display:none; font-weight:bold; }
+    #sideLabel { margin-top:8px; font-weight:bold; color:#1a73e8; display:none; }
+    #counterText { margin-top:8px; font-size:1.2em; }
+    #progressOuter { width:100%; height:14px; background:#eee; border-radius:8px; overflow:hidden; margin-top:8px; }
+    #progressInner { height:100%; width:0%; background:#4caf50; transition: width 200ms linear; }
+    #controls { margin-top:10px; display:flex; justify-content:space-between; gap:8px; }
+    button { padding:6px 10px; border-radius:6px; border: none; background:#1a73e8; color:white; cursor:pointer; }
+    #doneMessage { margin-top:10px; font-weight:bold; color:#0b6623; display:none; }
+    #cancelBtn { background:#b0b0b0; }
+  </style>
+</head>
+<body>
+<div id="container">
+  <div id="webcam-container">
+    <div id="feedback">REP!</div>
+  </div>
+
+  <div id="sideLabel"></div>
+  <div id="counterText">Reps: <span id="counter">0</span></div>
+  <div id="progressOuter"><div id="progressInner"></div></div>
+
+  <div id="doneMessage"></div>
+
+  <div id="controls">
+    <button id="stopBtn">Stop</button>
+    <button id="finishBtn">Finish (force)</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+
+<script>
+  (async function () {
+    // Config & state
+    const MODEL_DIR = chrome.runtime.getURL("my_model/");
+    const GOAL_DEFAULT = 10;
+    const CONF_THRESHOLD = 0.8;
+    let model, webcam, maxPredictions;
+    let exercise = "JumpingJack";
+    let goal = GOAL_DEFAULT;
+    let counter = 0;
+    let lastPosition = "";
+    let running = true;
+
+    // KneeHug state
+    let kneeSeconds = 0;
+    let kneeSide = 1;
+    let kneeHoldStart = null;
+    let kneePaused = false;
+    let kneeSwitchTimer = null;
+
+    const exerciseClasses = {
+      JumpingJack: ["JackUp", "JackOut"],
+      Pushup: ["PushUp", "PushDown"],
+      Squat: ["SquatUp", "SquatDown"],
+      KneeHug: ["KneeHug"]
+    };
+
+    // DOM refs
+    const webcamContainer = document.getElementById("webcam-container");
+    const feedback = document.getElementById("feedback");
+    const sideLabel = document.getElementById("sideLabel");
+    const counterText = document.getElementById("counterText");
+    let counterSpan = document.getElementById("counter");
+    const progressInner = document.getElementById("progressInner");
+    const doneMessage = document.getElementById("doneMessage");
+    const stopBtn = document.getElementById("stopBtn");
+    const finishBtn = document.getElementById("finishBtn");
+
+    // Load user settings from storage
+    chrome.storage.sync.get(["exercise", "goal"], data => {
+      exercise = data.exercise || "JumpingJack";
+      goal = data.goal || GOAL_DEFAULT;
+      updateUILabels();
+    });
+
+    function updateUILabels() {
+      if (exercise === "KneeHug") {
+        sideLabel.style.display = "block";
+        sideLabel.innerText = "Left Side";
+        counterText.innerText = `Seconds: ${kneeSeconds.toFixed(1)}`;
+      } else {
+        sideLabel.style.display = "none";
+        counterText.innerHTML = `Reps: <span id="counter">${counter}</span>`;
+        // rebind counterSpan
+        counterSpan = document.getElementById("counter");
+        counterSpan.innerText = counter;
+      }
+      updateProgress();
+    }
+
+    try {
+      // load model
+      model = await tmImage.load(MODEL_DIR + "model.json", MODEL_DIR + "metadata.json");
+      maxPredictions = model.getTotalClasses();
+
+      // create webcam
+      webcam = new tmImage.Webcam(320, 320, true);
+      await webcam.setup();
+      await webcam.play();
+
+      // append only the live canvas (fixes freezing duplicates)
+      webcamContainer.innerHTML = "";
+      webcamContainer.appendChild(webcam.canvas);
+
+      requestAnimationFrame(loop);
+    } catch (e) {
+      console.error("Model/camera load error:", e);
+      doneMessage.innerText = "Error loading camera or model.";
+      doneMessage.style.display = "block";
+    }
+
+    // Stop & finish buttons
+    stopBtn.addEventListener("click", () => {
+      // Stop and close iframe by sending message to parent content script
+      safeStopAndNotify(false);
+    });
+    finishBtn.addEventListener("click", () => {
+      safeStopAndNotify(true);
+    });
+
+    // Listen for instructions from content script prior to removal
+    window.addEventListener("message", (ev) => {
+      if (ev.data && ev.data.cmd === "stop") {
+        safeStopAndNotify(false);
+      }
+    });
+
+    // Main loop
+    async function loop() {
+      if (!running) return;
+      webcam.update();
+      await predict();
+      requestAnimationFrame(loop);
+    }
+
+    async function predict() {
+      if (!model) return;
+      // Get predictions and filter to relevant classes
+      const prediction = await model.predict(webcam.canvas);
+      const relevant = prediction.filter(p => exerciseClasses[exercise].includes(p.className));
+      if (relevant.length === 0) return;
+
+      let best = relevant.reduce((a, b) => (a.probability > b.probability ? a : b));
+      if (best.probability < CONF_THRESHOLD) {
+        // if below threshold, treat as leaving pose for knee hug
+        if (exercise === "KneeHug") handleKneeLeave();
+        return;
+      }
+
+      if (exercise === "KneeHug") {
+        handleKnee(best);
+      } else {
+        handleRepExercise(best);
+      }
+    }
+
+    function handleRepExercise(best) {
+      const [pos1, pos2] = exerciseClasses[exercise];
+      // pos1 is considered "up" (count when pos1 follows pos2)
+      if (best.className === pos1 && lastPosition === pos2) {
+        counter++;
+        showFeedback();
+        updateCounterUI();
+        updateProgress();
+        if (counter >= goal) {
+          finishFlow("Goal reached! Nice work!");
+        }
+      }
+      lastPosition = best.className;
+    }
+
+    function handleKnee(best) {
+      const isHug = best.className === "KneeHug";
+
+      sideLabel.style.display = "block";
+      sideLabel.innerText = (kneeSide === 1) ? "Left Side" : "Right Side";
+
+      if (isHug && !kneePaused) {
+        if (!kneeHoldStart) kneeHoldStart = Date.now();
+        const now = Date.now();
+        const elapsed = (now - kneeHoldStart) / 1000;
+        // accumulate elapsed time into kneeSeconds, but do it smoothly
+        if (elapsed >= 0.1) {
+          kneeSeconds += elapsed;
+          kneeHoldStart = now;
+          counterText.innerText = `Side ${kneeSide}: ${kneeSeconds.toFixed(1)}s`;
+          updateProgress();
+          if (kneeSeconds >= goal) {
+            if (kneeSide === 1) {
+              // switch to side 2 after a 2-second pause
+              kneeSide = 2;
+              kneeSeconds = 0;
+              kneePaused = true;
+              counterText.innerText = "Switch sides!";
+              setTimeout(() => {
+                kneePaused = false;
+                kneeHoldStart = null;
+                counterText.innerText = `Side ${kneeSide}: 0.0s`;
+              }, 2000);
+            } else {
+              finishFlow("Stretch complete!");
+            }
+          }
+        }
+      } else {
+        // Not hugging or low confidence: reset hold start, but keep accumulated time
+        kneeHoldStart = null;
+      }
+    }
+
+    function handleKneeLeave() {
+      kneeHoldStart = null;
+    }
+
+    function updateCounterUI() {
+      document.getElementById("counter").innerText = counter;
+    }
+
+    function updateProgress() {
+      let percent = 0;
+      if (exercise === "KneeHug") {
+        percent = Math.min((kneeSeconds / goal) * 100, 100);
+      } else {
+        percent = Math.min((counter / goal) * 100, 100);
+      }
+      progressInner.style.width = percent + "%";
+    }
+
+    function showFeedback() {
+      feedback.style.display = "block";
+      setTimeout(() => feedback.style.display = "none", 400);
+    }
+
+    function finishFlow(msg) {
+      doneMessage.innerText = msg;
+      doneMessage.style.display = "block";
+      // hide counter display
+      counterText.style.display = "none";
+      sideLabel.style.display = "none";
+      // send message to content script to remove iframe
+      chrome.runtime.sendMessage({ exerciseDone: true });
+      // stop camera gracefully
+      stopWebcam();
+      running = false;
+    }
+
+    // Stop camera and optionally notify parent to remove iframe
+    function stopWebcam() {
+      try {
+        if (webcam && webcam.stop) webcam.stop();
+      } catch (e) {}
+    }
+
+    function safeStopAndNotify(force) {
+      stopWebcam();
+      // If force true, tell parent to remove iframe (completed)
+      if (force) {
+        chrome.runtime.sendMessage({ exerciseDone: true });
+      } else {
+        // If user manually stops, tell parent to remove iframe too
+        chrome.runtime.sendMessage({ exerciseDone: true });
+      }
+      running = false;
+    }
+
+    // Clean up when page unloads
+    window.addEventListener("unload", () => {
+      stopWebcam();
+    });
+
+  })();
+</script>
+</body>
+</html>
