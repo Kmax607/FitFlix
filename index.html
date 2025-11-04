@@ -2,60 +2,198 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>FitFlix Demo</title>
+    <title>FitFlix</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            background: #f7f7f7;
+        :root {
+            --purple-dark: #1B0E2B;
+            --blue-light: #66C8FF;
+            --teal-accent: #4DEEEE;
+            --pink-light: #F8F1F4;
         }
-        #controls { margin: 15px; }
-        #counterSection { margin-top: 15px; font-size: 1.5em; }
-        video, canvas { border-radius: 12px; }
-        .hidden { display: none; }
 
-        /* Success popup */
+        body {
+            margin: 0;
+            font-family: 'Roboto', sans-serif;
+            font-weight: 700;
+            background: linear-gradient(to bottom, var(--purple-dark), var(--blue-light));
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: white;
+        }
+
+        /* ===== Logo Area ===== */
+        #logoArea {
+            margin-top: 25px;
+            margin-bottom: 25px;
+        }
+        #logoArea img {
+            height: 90px;
+        }
+
+        /* ===== Main Card ===== */
+        #exerciseCard {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(12px);
+            border-radius: 20px;
+            padding: 30px 40px;
+            width: 400px;
+            max-width: 90%;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            margin-top: 0;
+            font-size: 2.2em;
+            color: var(--pink-light);
+            letter-spacing: 1px;
+        }
+
+        label {
+            display: block;
+            text-align: left;
+            margin: 12px 0 5px;
+            font-size: 0.9em;
+            color: var(--pink-light);
+        }
+
+        select, input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: none;
+            outline: none;
+            font-size: 1em;
+            background: white;
+            color: #333;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            margin-top: 10px;
+            border-radius: 12px;
+            background: var(--teal-accent);
+            border: none;
+            font-size: 1.1em;
+            cursor: pointer;
+            color: var(--purple-dark);
+            font-weight: 700;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            transform: scale(1.03);
+            background: #6ef3f3;
+        }
+
+        /* Webcam */
+        #webcam-container {
+            margin-top: 25px;
+        }
+        video, canvas {
+            border-radius: 18px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+        }
+
+        /* Counter */
+        #counterSection {
+            margin-top: 0px;
+            font-size: 1.6em;
+            color: var(--pink-light);
+        }
+
+        /* Popup */
         #popup {
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7);
+            background: rgba(0,0,0,0.75);
             display: flex;
             justify-content: center;
             align-items: center;
             visibility: hidden;
         }
+
         #popupContent {
             background: white;
-            padding: 20px 40px;
-            border-radius: 10px;
-            font-size: 1.5em;
+            padding: 25px 50px;
+            border-radius: 15px;
+            color: var(--purple-dark);
+            font-size: 1.8em;
+            box-shadow: 0 4px 30px rgba(0,0,0,0.4);
         }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Fade-out animation for card */
+        .fadeOut {
+            opacity: 0;
+            transform: scale(0.98);
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+
+        /* Webcam styling (FitFlix theme) */
+        #webcam-container video,
+        #webcam-container canvas {
+            border-radius: 22px;
+            box-shadow: 0 0 25px rgba(102, 200, 255, 0.6),
+            0 0 40px rgba(77, 238, 238, 0.4);
+            border: 3px solid rgba(255, 255, 255, 0.45);
+        }
+
+        /* Counter overlay */
+        #counterOverlay {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: rgba(0,0,0,0.3);
+            padding: 10px 18px;
+            border-radius: 12px;
+            font-size: 2.3em;
+            font-weight: 700;
+            font-family: 'Roboto', sans-serif;
+            color: white;
+            text-shadow: 0px 0px 8px rgba(0,0,0,0.8);
+            z-index: 20;
+        }
+
     </style>
 </head>
 <body>
-<h1>FitFlix Demo</h1>
 
-<div id="controls">
-    <label>Exercise:
-        <select id="exerciseSelector">
-            <option value="JumpingJack">Jumping Jacks</option>
-            <option value="Pushup">Pushups</option>
-            <option value="Squat">Squats</option>
-            <option value="KneeHug">Knee Hug</option>
-        </select>
-    </label>
-
-    <label>Goal:
-        <input type="number" id="goalInput" min="1" value="10">
-        <span id="goalUnit">reps</span>
-    </label>
-
-    <button onclick="init()">Start</button>
+<div id="logoArea">
+    <!-- Leave space for your FitFlix logo -->
+    <img src="Logo.png">
 </div>
 
+<div id="exerciseCard">
+
+    <label>Exercise</label>
+    <select id="exerciseSelector">
+        <option value="JumpingJack">Jumping Jacks</option>
+        <option value="Pushup">Pushups</option>
+        <option value="Squat">Squats</option>
+        <option value="KneeHug">Knee Hug</option>
+    </select>
+
+    <label>Goal</label>
+    <input type="number" id="goalInput" min="1" value="10">
+    <span id="goalUnit" style="color: var(--pink-light); font-size: 0.8em;">reps</span>
+
+    <button onclick="init()">Start Workout</button>
+</div>
+
+<div id="counterOverlay" class="hidden">0</div>
 <div id="webcam-container"></div>
-<div id="label-container" class="hidden"></div>
+
 <div id="counterSection">
     <h2 id="counterText">Reps: <span id="counter">0</span></h2>
 </div>
@@ -64,8 +202,10 @@
     <div id="popupContent">Goal complete! Nice work!</div>
 </div>
 
+<!-- JS remains unchanged (drop in your existing script) -->
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+
 <script>
     const URL = "./my_model/";
     let model, webcam, labelContainer, maxPredictions;
@@ -99,11 +239,25 @@
         counter = 0;
         counting = true;
         lastPosition = "";
-        document.body.style.background = "#f7f7f7";
 
-        document.getElementById("counterSection").classList.remove("hidden");
-        document.getElementById("counterText").innerText =
-            (exercise === "KneeHug") ? "Hold Time: 0s" : "Reps: 0";
+        // Reset background override (keeps gradient)
+        document.body.style.background = "";
+
+        // Start fade-out animation
+        const card = document.getElementById("exerciseCard");
+        card.classList.add("fadeOut");
+
+        // Fully hide after animation completes
+        setTimeout(() => {
+            card.style.display = "none";
+        }, 400);
+
+        // Show overlay counter
+        const overlay = document.getElementById("counterOverlay");
+        overlay.classList.remove("hidden");
+        overlay.innerText = (exercise === "KneeHug") ? "0s" : "0";
+
+        document.getElementById("counterSection").classList.add("hidden");
 
         // Reset KneeHug state
         kneeSeconds = 0;
@@ -111,29 +265,27 @@
         kneeStartTime = null;
         kneePaused = false;
 
-        // Clean up old webcam feed if any
+        // Cleanup old webcam feed if any
         if (webcam) {
             await webcam.stop();
             document.getElementById("webcam-container").innerHTML = "";
         }
 
+        // Model init
         const modelURL = URL + "model.json";
         const metadataURL = URL + "metadata.json";
         model = await tmImage.load(modelURL, metadataURL);
         maxPredictions = model.getTotalClasses();
 
+        // Webcam init
         webcam = new tmImage.Webcam(300, 300, true);
         await webcam.setup();
         await webcam.play();
+
         document.getElementById("webcam-container").appendChild(webcam.canvas);
         window.requestAnimationFrame(loop);
-
-        labelContainer = document.getElementById("label-container");
-        labelContainer.innerHTML = "";
-        for (let i = 0; i < maxPredictions; i++) {
-            labelContainer.appendChild(document.createElement("div"));
-        }
     }
+
 
     async function loop() {
         webcam.update();
@@ -168,9 +320,11 @@
 
     function incrementCounter() {
         counter++;
-        document.getElementById("counterText").innerText = `Reps: ${counter}`;
+        document.getElementById("counterOverlay").innerText = counter;
+
         if (counter >= goal) completeExercise();
     }
+
 
     function handleKneeHug(bestMatch) {
         const now = Date.now();
@@ -183,6 +337,7 @@
                     kneeStartTime = now;
                     document.getElementById("counterText").innerText =
                         `Side ${kneeSide}: ${kneeSeconds}s`;
+                    document.getElementById("counterOverlay").innerText = `${kneeSeconds}s`;
                 }
 
                 if (kneeSeconds >= 10 && kneeSide === 1) {
@@ -205,6 +360,8 @@
         document.getElementById("counterSection").classList.add("hidden");
         document.body.style.background = "#d6ffd6";
         showPopup("Goal complete! Nice work!");
+        document.getElementById("counterOverlay").classList.add("hidden");
+
     }
 
     function showPopup(message) {
@@ -214,5 +371,7 @@
         setTimeout(() => { popup.style.visibility = "hidden"; }, 3000);
     }
 </script>
+
 </body>
 </html>
+
