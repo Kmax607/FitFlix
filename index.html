@@ -165,6 +165,56 @@
             z-index: 20;
         }
 
+        /* ===== Countdown animation ===== */
+        #countdownOverlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.75);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 6em;
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 0 25px rgba(0,255,255,0.9);
+            visibility: hidden;
+            z-index: 9999;
+        }
+
+        /* Fade and grow animation for numbers */
+        .countdownPulse {
+            animation: countdownPulse 1s ease forwards;
+        }
+        @keyframes countdownPulse {
+            0% { opacity: 0; transform: scale(0.3); }
+            50% { opacity: 1; transform: scale(1.2); }
+            100% { opacity: 0; transform: scale(1); }
+        }
+
+        /* ===== Rep counter pulse ===== */
+        .repPulse {
+            animation: repPulse 0.4s ease;
+        }
+        @keyframes repPulse {
+            0% { transform: scale(1); }
+            40% { transform: scale(1.25); }
+            100% { transform: scale(1); }
+        }
+
+        /* ===== Slide-in animation for Switch Sides / Goal Complete ===== */
+        .slideMessage {
+            animation: slideMessage 1.2s ease forwards;
+        }
+        @keyframes slideMessage {
+            0% { opacity: 0; transform: translateY(-40px); }
+            25% { opacity: 1; transform: translateY(0); }
+            75% { opacity: 1; }
+            100% { opacity: 0; transform: translateY(20px); }
+        }
+
+
     </style>
 </head>
 <body>
@@ -192,10 +242,10 @@
 </div>
 
 <div id="counterOverlay" class="hidden">0</div>
+<div id="countdownOverlay"></div>
 <div id="webcam-container"></div>
 
 <div id="counterSection">
-    <h2 id="counterText">Reps: <span id="counter">0</span></h2>
 </div>
 
 <div id="popup">
@@ -237,53 +287,78 @@
         exercise = document.getElementById("exerciseSelector").value;
         goal = parseInt(document.getElementById("goalInput").value);
         counter = 0;
-        counting = true;
+        counting = false; // prevent rep counting during countdown
         lastPosition = "";
 
-        // Reset background override (keeps gradient)
         document.body.style.background = "";
 
-        // Start fade-out animation
         const card = document.getElementById("exerciseCard");
         card.classList.add("fadeOut");
+        setTimeout(() => { card.style.display = "none"; }, 400);
 
-        // Fully hide after animation completes
-        setTimeout(() => {
-            card.style.display = "none";
-        }, 400);
-
-        // Show overlay counter
         const overlay = document.getElementById("counterOverlay");
         overlay.classList.remove("hidden");
         overlay.innerText = (exercise === "KneeHug") ? "0s" : "0";
 
         document.getElementById("counterSection").classList.add("hidden");
 
-        // Reset KneeHug state
         kneeSeconds = 0;
         kneeSide = 1;
         kneeStartTime = null;
         kneePaused = false;
 
-        // Cleanup old webcam feed if any
         if (webcam) {
             await webcam.stop();
             document.getElementById("webcam-container").innerHTML = "";
         }
 
-        // Model init
         const modelURL = URL + "model.json";
         const metadataURL = URL + "metadata.json";
         model = await tmImage.load(modelURL, metadataURL);
         maxPredictions = model.getTotalClasses();
 
-        // Webcam init
         webcam = new tmImage.Webcam(300, 300, true);
         await webcam.setup();
-        await webcam.play();
 
+        /* ✅ Start animated countdown */
+        await runCountdown();
+
+        await webcam.play();
         document.getElementById("webcam-container").appendChild(webcam.canvas);
+
+        counting = true;
         window.requestAnimationFrame(loop);
+    }
+
+
+    function runCountdown() {
+        return new Promise(resolve => {
+            const cd = document.getElementById("countdownOverlay");
+            cd.style.visibility = "visible";
+
+            let timeLeft = 3;
+
+            function showNumber() {
+                cd.innerText = timeLeft;
+                cd.classList.remove("countdownPulse");
+                void cd.offsetWidth; // restart animation
+                cd.classList.add("countdownPulse");
+
+                if (timeLeft > 0) {
+                    setTimeout(() => {
+                        timeLeft--;
+                        showNumber();
+                    }, 900);
+                } else {
+                    setTimeout(() => {
+                        cd.style.visibility = "hidden";
+                        resolve();
+                    }, 900);
+                }
+            }
+
+            showNumber();
+        });
     }
 
 
@@ -320,10 +395,17 @@
 
     function incrementCounter() {
         counter++;
-        document.getElementById("counterOverlay").innerText = counter;
+        const overlay = document.getElementById("counterOverlay");
+        overlay.innerText = counter;
+
+        // ✅ Pulse animation
+        overlay.classList.remove("repPulse");
+        void overlay.offsetWidth;
+        overlay.classList.add("repPulse");
 
         if (counter >= goal) completeExercise();
     }
+
 
 
     function handleKneeHug(bestMatch) {
@@ -344,10 +426,13 @@
                     kneeSide = 2;
                     kneeSeconds = 0;
                     kneePaused = true;
-                    document.getElementById("counterText").innerText = "Switch sides!";
+
+                    const textBox = document.getElementById("counterText");
+                    textBox.innerText = "Switch sides!";
+                    textBox.classList.add("slideMessage");
+                    setTimeout(() => textBox.classList.remove("slideMessage"), 1400);
+
                     setTimeout(() => { kneePaused = false; }, 2000);
-                } else if (kneeSeconds >= 10 && kneeSide === 2) {
-                    completeExercise();
                 }
             }
         } else {
@@ -357,12 +442,16 @@
 
     function completeExercise() {
         counting = false;
-        document.getElementById("counterSection").classList.add("hidden");
-        document.body.style.background = "#d6ffd6";
-        showPopup("Goal complete! Nice work!");
         document.getElementById("counterOverlay").classList.add("hidden");
 
+        const popup = document.getElementById("popupContent");
+        popup.innerText = "Goal Completed!";
+        popup.classList.add("slideMessage");
+        setTimeout(() => popup.classList.remove("slideMessage"), 1500);
+
+        showPopup("Goal Completed!");
     }
+
 
     function showPopup(message) {
         const popup = document.getElementById("popup");
