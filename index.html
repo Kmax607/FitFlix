@@ -24,16 +24,9 @@
             color: white;
         }
 
-        /* ===== Logo Area ===== */
-        #logoArea {
-            margin-top: 25px;
-            margin-bottom: 25px;
-        }
-        #logoArea img {
-            height: 90px;
-        }
+        #logoArea { margin-top: 25px; margin-bottom: 25px; }
+        #logoArea img { height: 90px; }
 
-        /* ===== Main Card ===== */
         #exerciseCard {
             background: rgba(255,255,255,0.1);
             backdrop-filter: blur(12px);
@@ -45,20 +38,9 @@
             box-shadow: 0 8px 25px rgba(0,0,0,0.3);
         }
 
-        h1 {
-            margin-top: 0;
-            font-size: 2.2em;
-            color: var(--pink-light);
-            letter-spacing: 1px;
-        }
+        h1 { margin-top: 0; font-size: 2.2em; color: var(--pink-light); letter-spacing: 1px; }
 
-        label {
-            display: block;
-            text-align: left;
-            margin: 12px 0 5px;
-            font-size: 0.9em;
-            color: var(--pink-light);
-        }
+        label { display: block; text-align: left; margin: 12px 0 5px; font-size: 0.9em; color: var(--pink-light); }
 
         select, input {
             width: 100%;
@@ -87,151 +69,105 @@
             transition: 0.2s;
         }
 
-        button:hover {
-            transform: scale(1.03);
-            background: #6ef3f3;
-        }
+        button:hover { transform: scale(1.03); background: #6ef3f3; }
 
-        /* Webcam */
-        #webcam-container {
-            margin-top: 25px;
-        }
-        video, canvas {
-            border-radius: 18px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.25);
-        }
+        #webcam-container { margin-top: 25px; }
+        video, canvas { border-radius: 18px; box-shadow: 0 4px 20px rgba(0,0,0,0.25); }
 
-        /* Counter */
-        #counterSection {
-            margin-top: 0px;
-            font-size: 1.6em;
-            color: var(--pink-light);
-        }
+        #counterSection { margin-top: 0px; font-size: 1.6em; color: var(--pink-light); }
 
-        /* Popup */
         #popup {
-            position: fixed;
-            top: 0; left: 0;
+            position: fixed; top: 0; left: 0;
             width: 100%; height: 100%;
             background: rgba(0,0,0,0.75);
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            display: flex; justify-content: center; align-items: center;
             visibility: hidden;
         }
 
         #popupContent {
-            background: white;
-            padding: 25px 50px;
-            border-radius: 15px;
-            color: var(--purple-dark);
-            font-size: 1.8em;
+            background: white; padding: 25px 50px; border-radius: 15px;
+            color: var(--purple-dark); font-size: 1.8em;
             box-shadow: 0 4px 30px rgba(0,0,0,0.4);
         }
 
-        .hidden {
-            display: none;
-        }
+        .hidden { display: none; }
 
-        /* Fade-out animation for card */
         .fadeOut {
-            opacity: 0;
-            transform: scale(0.98);
+            opacity: 0; transform: scale(0.98);
             transition: opacity 0.4s ease, transform 0.4s ease;
         }
 
-        /* Webcam styling (FitFlix theme) */
-        #webcam-container video,
-        #webcam-container canvas {
+        #webcam-container video, #webcam-container canvas {
             border-radius: 22px;
             box-shadow: 0 0 25px rgba(102, 200, 255, 0.6),
             0 0 40px rgba(77, 238, 238, 0.4);
-            border: 3px solid rgba(255, 255, 255, 0.45);
+            border: 3px solid rgba(255,255,255,0.45);
         }
 
-        /* Counter overlay */
         #counterOverlay {
             position: absolute;
-            top: 15px;
-            right: 20px;
+            top: 15px; right: 20px;
             background: rgba(0,0,0,0.3);
-            padding: 10px 18px;
-            border-radius: 12px;
-            font-size: 2.3em;
-            font-weight: 700;
+            padding: 10px 18px; border-radius: 12px;
+            font-size: 2.3em; font-weight: 700;
             font-family: 'Roboto', sans-serif;
-            color: white;
-            text-shadow: 0px 0px 8px rgba(0,0,0,0.8);
+            color: white; text-shadow: 0px 0px 8px rgba(0,0,0,0.8);
             z-index: 20;
         }
 
-        /* ===== Countdown animation ===== */
         #countdownOverlay {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%;
-            height: 100%;
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
             background: rgba(0,0,0,0.75);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 6em;
-            font-weight: 700;
-            color: white;
-            text-shadow: 0 0 25px rgba(0,255,255,0.9);
-            visibility: hidden;
-            z-index: 9999;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 6em; font-weight: 700;
+            color: white; text-shadow: 0 0 25px rgba(0,255,255,0.9);
+            visibility: hidden; z-index: 9999;
         }
 
-        /* Fade and grow animation for numbers */
         .countdownPulse {
             animation: countdownPulse 1s ease forwards;
         }
+
         @keyframes countdownPulse {
             0% { opacity: 0; transform: scale(0.3); }
             50% { opacity: 1; transform: scale(1.2); }
             100% { opacity: 0; transform: scale(1); }
         }
 
-        /* ===== Rep counter pulse ===== */
-        .repPulse {
-            animation: repPulse 0.4s ease;
-        }
+        .repPulse { animation: repPulse 0.4s ease; }
+
         @keyframes repPulse {
             0% { transform: scale(1); }
             40% { transform: scale(1.25); }
             100% { transform: scale(1); }
         }
 
-        /* ===== Slide-in animation for Switch Sides / Goal Complete ===== */
-        .slideMessage {
-            animation: slideMessage 1.2s ease forwards;
-        }
+        .slideMessage { animation: slideMessage 1.2s ease forwards; }
+
         @keyframes slideMessage {
             0% { opacity: 0; transform: translateY(-40px); }
             25% { opacity: 1; transform: translateY(0); }
             75% { opacity: 1; }
             100% { opacity: 0; transform: translateY(20px); }
         }
-
-
     </style>
 </head>
 <body>
 
 <div id="logoArea">
-    <!-- Leave space for your FitFlix logo -->
     <img src="Logo.png">
 </div>
 
 <div id="exerciseCard">
-
     <label>Exercise</label>
     <select id="exerciseSelector">
         <option value="JumpingJack">Jumping Jacks</option>
         <option value="Pushup">Pushups</option>
         <option value="Squat">Squats</option>
         <option value="KneeHug">Knee Hug</option>
+        <option value="ArmStretch">Arm Stretch</option>
+        <option value="DrinkWater">Drink Water</option>
     </select>
 
     <label>Goal</label>
@@ -246,13 +182,13 @@
 <div id="webcam-container"></div>
 
 <div id="counterSection">
+    <div id="counterText" style="text-align:center; margin-top:10px; font-size:1.4em; color:white;"></div>
 </div>
 
 <div id="popup">
     <div id="popupContent">Goal complete! Nice work!</div>
 </div>
 
-<!-- JS remains unchanged (drop in your existing script) -->
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
 
@@ -265,47 +201,53 @@
     let exercise = "JumpingJack";
     let counting = true;
 
-    // For KneeHug
-    let kneeSeconds = 0;
-    let kneeSide = 1;
-    let kneeStartTime = null;
-    let kneePaused = false;
+    // Timers
+    let timedSeconds = 0;
+    let timedStart = null;
+    let timedPaused = false;
+
+    // Arm Stretch side logic
+    let armSide = 1;
 
     const exerciseClasses = {
         JumpingJack: ["JackUp", "JackOut"],
         Pushup: ["PushUp", "PushDown"],
         Squat: ["SquatUp", "SquatDown"],
-        KneeHug: ["KneeHug"]
+        KneeHug: ["KneeHug"],
+        ArmStretch: [],       // auto count, no prediction needed
+        DrinkWater: []        // auto count
     };
 
     document.getElementById("exerciseSelector").addEventListener("change", e => {
         exercise = e.target.value;
-        document.getElementById("goalUnit").innerText = (exercise === "KneeHug") ? "seconds" : "reps";
+        let unit = "reps";
+        if (["KneeHug", "ArmStretch", "DrinkWater"].includes(exercise)) {
+            unit = "seconds";
+        }
+        document.getElementById("goalUnit").innerText = unit;
     });
 
     async function init() {
         exercise = document.getElementById("exerciseSelector").value;
         goal = parseInt(document.getElementById("goalInput").value);
         counter = 0;
-        counting = false; // prevent rep counting during countdown
         lastPosition = "";
+        counting = false;
 
-        document.body.style.background = "";
+        // Timed-mode reset
+        timedSeconds = 0;
+        timedStart = null;
+        timedPaused = false;
+        armSide = 1;
 
         const card = document.getElementById("exerciseCard");
         card.classList.add("fadeOut");
-        setTimeout(() => { card.style.display = "none"; }, 400);
+        setTimeout(() => card.style.display = "none", 400);
 
         const overlay = document.getElementById("counterOverlay");
+        overlay.innerText = (exercise === "ArmStretch" || exercise === "DrinkWater" || exercise === "KneeHug")
+            ? "0s" : "0";
         overlay.classList.remove("hidden");
-        overlay.innerText = (exercise === "KneeHug") ? "0s" : "0";
-
-        document.getElementById("counterSection").classList.add("hidden");
-
-        kneeSeconds = 0;
-        kneeSide = 1;
-        kneeStartTime = null;
-        kneePaused = false;
 
         if (webcam) {
             await webcam.stop();
@@ -315,18 +257,18 @@
         const modelURL = URL + "model.json";
         const metadataURL = URL + "metadata.json";
         model = await tmImage.load(modelURL, metadataURL);
-        maxPredictions = model.getTotalClasses();
 
         webcam = new tmImage.Webcam(300, 300, true);
         await webcam.setup();
 
-        /* ✅ Start animated countdown */
         await runCountdown();
-
         await webcam.play();
+
         document.getElementById("webcam-container").appendChild(webcam.canvas);
 
         counting = true;
+        timedStart = Date.now();
+
         window.requestAnimationFrame(loop);
     }
 
@@ -337,18 +279,14 @@
             cd.style.visibility = "visible";
 
             let timeLeft = 3;
-
-            function showNumber() {
+            function show() {
                 cd.innerText = timeLeft;
                 cd.classList.remove("countdownPulse");
-                void cd.offsetWidth; // restart animation
+                void cd.offsetWidth;
                 cd.classList.add("countdownPulse");
 
                 if (timeLeft > 1) {
-                    setTimeout(() => {
-                        timeLeft--;
-                        showNumber();
-                    }, 900);
+                    setTimeout(() => { timeLeft--; show(); }, 900);
                 } else {
                     setTimeout(() => {
                         cd.style.visibility = "hidden";
@@ -356,8 +294,7 @@
                     }, 900);
                 }
             }
-
-            showNumber();
+            show();
         });
     }
 
@@ -371,42 +308,118 @@
     async function predict() {
         if (!counting) return;
 
+        // AUTOMATIC COUNTING EXERCISES
+        if (exercise === "ArmStretch") return handleArmStretch();
+        if (exercise === "DrinkWater") return handleDrinkWater();
+        if (exercise === "KneeHug") return handleKneeHug();
+
+        // Normal model-based exercises
         const prediction = await model.predict(webcam.canvas);
         let filtered = prediction.filter(p => exerciseClasses[exercise].includes(p.className));
         if (filtered.length === 0) return;
 
-        let bestMatch = filtered.reduce((a, b) => (a.probability > b.probability ? a : b));
-        if (bestMatch.probability < 0.8) return;
+        let best = filtered.reduce((a, b) => (a.probability > b.probability ? a : b));
+        if (best.probability < 0.8) return;
 
         if (exercise === "JumpingJack") {
-            if (bestMatch.className === "JackUp" && lastPosition === "JackOut") incrementCounter();
-            lastPosition = bestMatch.className;
+            if (best.className === "JackUp" && lastPosition === "JackOut") incrementRep();
+            lastPosition = best.className;
         }
         if (exercise === "Pushup") {
-            if (bestMatch.className === "PushUp" && lastPosition === "PushDown") incrementCounter();
-            lastPosition = bestMatch.className;
+            if (best.className === "PushUp" && lastPosition === "PushDown") incrementRep();
+            lastPosition = best.className;
         }
         if (exercise === "Squat") {
-            if (bestMatch.className === "SquatUp" && lastPosition === "SquatDown") incrementCounter();
-            lastPosition = bestMatch.className;
+            if (best.className === "SquatUp" && lastPosition === "SquatDown") incrementRep();
+            lastPosition = best.className;
         }
-        if (exercise === "KneeHug") handleKneeHug(bestMatch);
     }
 
-    function incrementCounter() {
-        counter++;
-        const overlay = document.getElementById("counterOverlay");
-        overlay.innerText = counter;
 
-        // ✅ Pulse animation
-        overlay.classList.remove("repPulse");
-        void overlay.offsetWidth;
-        overlay.classList.add("repPulse");
+    /* ============================
+       REP BASED EXERCISES
+    ============================ */
+    function incrementRep() {
+        counter++;
+        animateCounter(counter);
 
         if (counter >= goal) completeExercise();
     }
 
+    function animateCounter(val) {
+        const overlay = document.getElementById("counterOverlay");
+        overlay.innerText = val;
 
+        overlay.classList.remove("repPulse");
+        void overlay.offsetWidth;
+        overlay.classList.add("repPulse");
+    }
+
+
+    /* ============================
+       AUTO TIMED: DRINK WATER
+    ============================ */
+    function handleDrinkWater() {
+        const now = Date.now();
+        const elapsed = Math.floor((now - timedStart) / 1000);
+
+        if (elapsed !== timedSeconds) {
+            timedSeconds = elapsed;
+            animateCounter(timedSeconds);
+        }
+
+        if (timedSeconds >= goal) completeExercise();
+    }
+
+
+    /* ============================
+       AUTO TIMED WITH SIDES: ARM STRETCH
+    ============================ */
+    function handleArmStretch() {
+        const now = Date.now();
+        const elapsed = Math.floor((now - timedStart) / 1000);
+
+        if (elapsed !== timedSeconds) {
+            timedSeconds = elapsed;
+
+            document.getElementById("counterOverlay").innerText =
+                timedSeconds;
+            document.getElementById("counterOverlay").classList.add("repPulse");
+
+            setTimeout(() => {
+                document.getElementById("counterOverlay").classList.remove("repPulse");
+            }, 300);
+        }
+
+        // Side complete
+        if (timedSeconds >= goal) {
+            if (armSide === 1) {
+                armSide = 2;
+                timedSeconds = 0;
+                timedStart = Date.now();
+
+                showSwitchSides();
+            } else {
+                completeExercise();
+            }
+        }
+    }
+
+    function showSwitchSides() {
+        const box = document.getElementById("counterText");
+        box.innerText = "Switch sides!";
+        box.classList.add("slideMessage");
+        setTimeout(() => box.classList.remove("slideMessage"), 1500);
+    }
+
+
+    /* ============================
+       KNEE HUG (existing)
+    ============================ */
+    let kneeSeconds = 0;
+    let kneeSide = 1;
+    let kneeStartTime = null;
+    let kneePaused = false;
 
     function handleKneeHug(bestMatch) {
         const now = Date.now();
@@ -417,50 +430,44 @@
                 if (elapsed >= 1) {
                     kneeSeconds++;
                     kneeStartTime = now;
-                    document.getElementById("counterText").innerText =
-                        `Side ${kneeSide}: ${kneeSeconds}s`;
                     document.getElementById("counterOverlay").innerText = `${kneeSeconds}s`;
                 }
 
-                if (kneeSeconds >= 10 && kneeSide === 1) {
+                if (kneeSeconds >= goal && kneeSide === 1) {
                     kneeSide = 2;
                     kneeSeconds = 0;
                     kneePaused = true;
 
-                    const textBox = document.getElementById("counterText");
-                    textBox.innerText = "Switch sides!";
-                    textBox.classList.add("slideMessage");
-                    setTimeout(() => textBox.classList.remove("slideMessage"), 1400);
-
-                    setTimeout(() => { kneePaused = false; }, 2000);
+                    showSwitchSides();
+                    setTimeout(() => kneePaused = false, 2000);
                 }
             }
         } else {
             kneeStartTime = null;
         }
+
+        if (kneeSide === 2 && kneeSeconds >= goal) {
+            completeExercise();
+        }
     }
 
+
+    /* ============================
+         COMPLETE EXERCISE
+    ============================ */
     function completeExercise() {
         counting = false;
-        document.getElementById("counterOverlay").classList.add("hidden");
 
-        const popup = document.getElementById("popupContent");
-        popup.innerText = "Goal Completed!";
-        popup.classList.add("slideMessage");
-        setTimeout(() => popup.classList.remove("slideMessage"), 1500);
-
-        showPopup("Goal Completed!");
-    }
-
-
-    function showPopup(message) {
         const popup = document.getElementById("popup");
-        document.getElementById("popupContent").innerText = message;
+        const content = document.getElementById("popupContent");
+
+        content.innerText = "Goal Completed!";
         popup.style.visibility = "visible";
-        setTimeout(() => { popup.style.visibility = "hidden"; }, 3000);
+
+        setTimeout(() => popup.style.visibility = "hidden", 3000);
     }
 </script>
 
+
 </body>
 </html>
-
